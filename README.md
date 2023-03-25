@@ -148,7 +148,6 @@ unconverted-weights
 |── 7B 
 │      ├── checklist.chk 
 │      ├── consolidated.00.pth 
-
 │      └── params.json 
 ├── tokenizer.model 
 └── tokenizer_checklist.chk 
@@ -174,7 +173,6 @@ Weights
 
  
 ├── llama-7b 
-
 └── tokenizermdki 
 
 ``` 
@@ -197,27 +195,20 @@ https://github.com/huggingface/transformers/issues/22222
 
 ``` 
 
-"Could not find the transformer layer class to wrap in the model 
-
-" 
+"Could not find the transformer layer class to wrap in the model " 
 
 ``` 
 
 Try changing fsdp_transformer_layer_cls_to_wrap to LlamaDecoderLayer 
 
- 
-
 https://github.com/tatsu-lab/stanford_alpaca/issues/58 
 
- 
 
-Kick off the training:    Three Nodes, 8*3 = 24 GPUs 
+## Multi-GPUs Model Training
 
 https://lambdalabs.com/blog/multi-node-pytorch-distributed-training-guide 
 
- 
-
-Training on 40GB GPUs A100:- 
+### Training on 40GB GPUs A100:- 
 
 "torch.cuda.OutOfMemoryError: CUDA out of memory. Tried to allocate 44.00 MiB (GPU 6; 39.59 GiB total capacity; 37.09 GiB already allocated; 30.19 MiB free; 37.68 GiB reserved in total by PyTorch) If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation." 
 
@@ -273,6 +264,7 @@ $ torchrun   --nproc_per_node=8 --master_port=9292    train.py  \
 
 ``` 
 
+About 39 minutes for  training, "609/609 [38:53<00:00,  3.83s/it]" 
 
 ## ChatLLaMA inference test: 
 
@@ -292,8 +284,19 @@ $  cog predict -i prompt="tell me something about รามาเกรียน
 
 ``` 
 
+```
+$  cog predict -i prompt="tell me how to mitigrate เงินเฝ้อ"
 
-About 39 minutes for  training, "609/609 [38:53<00:00,  3.83s/it]" 
+```
+
+
+```
+Running prediction...
+[
+  "Mitigating money laundering typically involves conducting customer due diligence, such as verifying the identity and source of funds of customers and monitoring transactions for suspicious activity. Additionally, financial institutions can implement internal controls and apply special anti-money laundering compliance programs."
+]
+```
+
 
 
 
