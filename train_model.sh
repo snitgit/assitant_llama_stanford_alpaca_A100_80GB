@@ -1,8 +1,8 @@
 #!/bin/bash
 
-torchrun --nproc_per_node=4 --master_port=9292 train.py \
-    --model_name_or_path /src/weights/llama-7b \
-    --tokenizer_name_or_path /src/weights/tokenizer \
+torchrun --nproc_per_node=8 --master_port=9292 train.py \
+    --model_name_or_path ./weights/llama-7b \
+    --tokenizer_name_or_path ./weights/tokenizer \
     --data_path ./alpaca_data.json \
     --bf16 True \
     --output_dir alpaca_out \
@@ -19,5 +19,5 @@ torchrun --nproc_per_node=4 --master_port=9292 train.py \
     --lr_scheduler_type "cosine" \
     --logging_steps 1 \
     --fsdp "full_shard auto_wrap" \
-    --fsdp_transformer_layer_cls_to_wrap 'LLaMADecoderLayer' \
+    --fsdp_transformer_layer_cls_to_wrap 'LlamaDecoderLayer' \
     --tf32 True \
