@@ -189,8 +189,6 @@ Weights
 
 This is arising, because the tokenizer in the config on the hub points to LLaMATokenizer. However, the tokenizer in the library is LlamaTokenizer. 
 
- 
-
 https://github.com/huggingface/transformers/issues/22222 
 
 ``` 
