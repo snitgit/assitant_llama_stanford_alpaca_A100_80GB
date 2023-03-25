@@ -110,7 +110,7 @@ pip install -r requirements.txt
 ```
 Then, install the particular libraries. 
 
-# ChatLLaMA with Stanford Alpaca on NVIDIA A100 
+# ChatLLaMA with Stanford Alpaca on NVIDIA A100 by SnitGit
 
 ## Install Cog and Dependencies 
 ```
@@ -169,11 +169,11 @@ You final directory structure should look like this:
 
 ``` 
 
-Weights 
+weights 
 
  
 ├── llama-7b 
-└── tokenizermdki 
+└── tokenizer
 
 ``` 
 
@@ -185,10 +185,11 @@ Weights
 
 ``` 
 
- 
-
 This is arising, because the tokenizer in the config on the hub points to LLaMATokenizer. However, the tokenizer in the library is LlamaTokenizer. 
-
+So 
+```
+Change the LLaMATokenizer in tokenizer_config.json into lowercase LlamaTokenizer
+```
 https://github.com/huggingface/transformers/issues/22222 
 
 ``` 
