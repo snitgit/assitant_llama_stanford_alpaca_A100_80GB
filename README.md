@@ -108,62 +108,194 @@ To reproduce our fine-tuning runs for LLaMA, first install the requirements
 ```bash
 pip install -r requirements.txt
 ```
-Then, install the particular fork of Hugging Face's transformers library.
+Then, install the particular libraries. 
 
-Below is a command that fine-tunes LLaMA-7B with our dataset on a machine with 4 A100 80G GPUs in FSDP `full_shard` mode. 
-We were able to reproduce a model of similar quality as the one we hosted in our demo with the following command using **Python 3.10**.
-Replace `<your_random_port>` with a port of your own, `<your_path_to_hf_converted_llama_ckpt_and_tokenizer>` with the 
-path to your converted checkpoint and tokenizer (following instructions in the PR), and `<your_output_dir>` with where you want to store your outputs.
+# ChatLLaMA with Stanford Alpaca on NVIDIA A100 
 
-```bash
-torchrun --nproc_per_node=4 --master_port=<your_random_port> train.py \
-    --model_name_or_path <your_path_to_hf_converted_llama_ckpt_and_tokenizer> \
-    --data_path ./alpaca_data.json \
-    --bf16 True \
-    --output_dir <your_output_dir> \
-    --num_train_epochs 3 \
-    --per_device_train_batch_size 4 \
-    --per_device_eval_batch_size 4 \
-    --gradient_accumulation_steps 8 \
-    --evaluation_strategy "no" \
-    --save_strategy "steps" \
-    --save_steps 2000 \
-    --save_total_limit 1 \
-    --learning_rate 2e-5 \
-    --weight_decay 0. \
-    --warmup_ratio 0.03 \
-    --lr_scheduler_type "cosine" \
-    --logging_steps 1 \
-    --fsdp "full_shard auto_wrap" \
-    --fsdp_transformer_layer_cls_to_wrap 'LLaMADecoderLayer' \
-    --tf32 True
-```
+## Install Cog and Dependencies 
+'''
+$ curl -o /usr/local/bin/cog -L \ https://github.com/replicate/cog/releases/latest/download/cog_`uname -s`_`uname -m` 
 
-The same script also works for OPT fine-tuning. Here's an example for fine-tuning OPT-6.7B
+$ chmod +x /home/snit.san/bin/cog 
+'''
 
-```bash
-torchrun --nproc_per_node=4 --master_port=<your_random_port> train.py \
-    --model_name_or_path "facebook/opt-6.7b" \
-    --data_path ./alpaca_data.json \
-    --bf16 True \
-    --output_dir <your_output_dir> \
-    --num_train_epochs 3 \
-    --per_device_train_batch_size 4 \
-    --per_device_eval_batch_size 4 \
-    --gradient_accumulation_steps 8 \
-    --evaluation_strategy "no" \
-    --save_strategy "steps" \
-    --save_steps 2000 \
-    --save_total_limit 1 \
-    --learning_rate 2e-5 \
-    --weight_decay 0. \
-    --warmup_ratio 0.03 \
-    --lr_scheduler_type "cosine" \
-    --logging_steps 1 \
-    --fsdp "full_shard auto_wrap" \
-    --fsdp_transformer_layer_cls_to_wrap 'OPTDecoderLayer' \
-    --tf32 True
-```
+To solve error "keyError:llama" 
+'''
+$ pip install git+https://github.com/huggingface/transformers 
+
+$ conda install sentencepiece -c huggingface 
+'''
+
+## Step 1: Clone the Alpaca repository 
+
+Log into your GPU instance via SSH. Clone the repository by running: 
+
+''' 
+
+$ git clone https://github.com/replicate/cog_stanford_alpaca 
+$ cd cog_stanford_alpaca 
+
+''' 
+## Step 2: Convert the LLaMA weights 
+
+The LLaMA weights are currently only available for research use. To apply for access, fill out this Meta Research form. 
+
+Put your downloaded weights in a folder called unconverted-weights. The folder hierarchy should look something like this: 
+
+unconverted-weights 
+''' 
+
+|── 7B 
+│      ├── checklist.chk 
+│      ├── consolidated.00.pth 
+
+│      └── params.json 
+├── tokenizer.model 
+└── tokenizer_checklist.chk 
+
+''' 
+
+Convert the weights from a PyTorch checkpoint to a transformers-compatible format using this command: 
+
+''' 
+
+$ cog run python -m transformers.models.llama.convert_llama_weights_to_hf \ 
+--input_dir unconverted-weights \ 
+--model_size 7B \ 
+--output_dir weights 
+
+''' 
+
+You final directory structure should look like this: 
+
+''' 
+
+Weights 
+
+ 
+├── llama-7b 
+
+└── tokenizermdki 
+
+''' 
+
+## Step 3: Train the model 
+
+''' 
+
+"ValueError: Tokenizer class LLaMATokenizer does not exist " 
+
+''' 
+
+ 
+
+This is arising, because the tokenizer in the config on the hub points to LLaMATokenizer. However, the tokenizer in the library is LlamaTokenizer. 
+
+ 
+
+https://github.com/huggingface/transformers/issues/22222 
+
+''' 
+
+"Could not find the transformer layer class to wrap in the model 
+
+" 
+
+''' 
+
+Try changing fsdp_transformer_layer_cls_to_wrap to LlamaDecoderLayer 
+
+ 
+
+https://github.com/tatsu-lab/stanford_alpaca/issues/58 
+
+ 
+
+Kick off the training:    Three Nodes, 8*3 = 24 GPUs 
+
+https://lambdalabs.com/blog/multi-node-pytorch-distributed-training-guide 
+
+ 
+
+Training on 40GB GPUs A100:- 
+
+"torch.cuda.OutOfMemoryError: CUDA out of memory. Tried to allocate 44.00 MiB (GPU 6; 39.59 GiB total capacity; 37.09 GiB already allocated; 30.19 MiB free; 37.68 GiB reserved in total by PyTorch) If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation." 
+
+ 
+
+NVIDIA A100 40GB GPUs are not enough resources to "train model'. 
+
+ 
+
+### Train model on 8GPUs with  80GB RAM on NVIDIA A100 
+
+''' 
+
+$ torchrun   --nproc_per_node=8 --master_port=9292    train.py  \ 
+
+  --model_name_or_path ./weights/llama-7b     \ 
+
+  --tokenizer_name_or_path ./weights/tokenizer     \ 
+
+  --data_path ./alpaca_data.json  \ 
+
+  --bf16 True     --output_dir ./alpaca_out    \ 
+
+  --num_train_epochs 3     \ 
+
+  --per_device_train_batch_size 4     \ 
+
+  --per_device_eval_batch_size 4    \ 
+
+  --gradient_accumulation_steps 8    \ 
+
+  --evaluation_strategy "no"    \ 
+
+  --save_strategy "steps"  \ 
+
+  --save_steps 2000   \ 
+
+  --learning_rate 2e-5  \ 
+
+  --weight_decay 0.    
+
+  --warmup_ratio 0.03   \ 
+
+  --lr_scheduler_type "cosine"      
+
+  --logging_steps 1  \ 
+
+  --fsdp "full_shard auto_wrap"    \ 
+
+  --fsdp_transformer_layer_cls_to_wrap 'LlamaDecoderLayer'     
+
+  --tf32 True  
+
+''' 
+
+
+## ChatLLaMA inference test: 
+
+''' 
+
+$  cog predict -i prompt="tell me something about รามาเกรียน " 
+
+''' 
+
+''' 
+
+[ 
+
+  "Ramakien is a Thai version of the Hindu epic, Ramayana. It is the national epic of Thailand and is based on the life of the god Rama and his struggle against the evil demon Ravana. The epic is told through a series of paintings and is part of the Buddhist faith in Thailand." 
+
+] 
+
+''' 
+
+
+About 39 minutes for  training, "609/609 [38:53<00:00,  3.83s/it]" 
+
+
 
 Note the given training script is meant to be simple and easy to use, and is not particularly optimized.
 To run on more gpus, you may prefer to turn down `gradient_accumulation_steps` to keep a global batch size of 128. Global batch size has not been tested for optimality.
