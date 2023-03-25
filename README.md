@@ -265,7 +265,7 @@ $ torchrun   --nproc_per_node=8 --master_port=9292    train.py  \
 About 39 minutes for  training, "609/609 [38:53<00:00,  3.83s/it]" 
 
 ## ChatLLaMA inference test: 
-
+Without tunning model, Thai's context and questin results are promising.
 ``` 
 
 $  cog predict -i prompt="tell me something about รามาเกรียน " 
@@ -296,6 +296,18 @@ Running prediction...
 ```
 
 
+``` 
+$ cog predict -i prompt="วิธีแก้ เงินเฝ้อ"
+```
+
+```
+[
+  "To earn extra money, you can try freelancing, finding a part-time job, or starting a side hustle."
+]
+
+```
+
+This is for personal note of running ChatLLaMA on Thai Language context on multi-GPUs cluster.
 
 
 Note the given training script is meant to be simple and easy to use, and is not particularly optimized.
