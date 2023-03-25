@@ -170,8 +170,6 @@ You final directory structure should look like this:
 ``` 
 
 weights 
-
- 
 ├── llama-7b 
 └── tokenizer
 
@@ -192,6 +190,7 @@ Change the LLaMATokenizer in tokenizer_config.json into lowercase LlamaTokenizer
 ```
 https://github.com/huggingface/transformers/issues/22222 
 
+Final error Training phase:
 ``` 
 
 "Could not find the transformer layer class to wrap in the model " 
@@ -199,6 +198,10 @@ https://github.com/huggingface/transformers/issues/22222
 ``` 
 
 Try changing fsdp_transformer_layer_cls_to_wrap to LlamaDecoderLayer 
+so in command argument of 'torchrun' change
+```
+--fsdp_transformer_layer_cls_to_wrap 'LlamaDecoderLayer'  
+```
 
 https://github.com/tatsu-lab/stanford_alpaca/issues/58 
 
