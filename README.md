@@ -113,29 +113,29 @@ Then, install the particular libraries.
 # ChatLLaMA with Stanford Alpaca on NVIDIA A100 
 
 ## Install Cog and Dependencies 
-'''
+```
 $ curl -o /usr/local/bin/cog -L \ https://github.com/replicate/cog/releases/latest/download/cog_`uname -s`_`uname -m` 
 
 $ chmod +x /home/snit.san/bin/cog 
-'''
+```
 
 To solve error "keyError:llama" 
-'''
+```
 $ pip install git+https://github.com/huggingface/transformers 
 
 $ conda install sentencepiece -c huggingface 
-'''
+```
 
 ## Step 1: Clone the Alpaca repository 
 
 Log into your GPU instance via SSH. Clone the repository by running: 
 
-''' 
+``` 
 
 $ git clone https://github.com/replicate/cog_stanford_alpaca 
 $ cd cog_stanford_alpaca 
 
-''' 
+``` 
 ## Step 2: Convert the LLaMA weights 
 
 The LLaMA weights are currently only available for research use. To apply for access, fill out this Meta Research form. 
@@ -143,7 +143,7 @@ The LLaMA weights are currently only available for research use. To apply for ac
 Put your downloaded weights in a folder called unconverted-weights. The folder hierarchy should look something like this: 
 
 unconverted-weights 
-''' 
+``` 
 
 |── 7B 
 │      ├── checklist.chk 
@@ -153,22 +153,22 @@ unconverted-weights
 ├── tokenizer.model 
 └── tokenizer_checklist.chk 
 
-''' 
+``` 
 
 Convert the weights from a PyTorch checkpoint to a transformers-compatible format using this command: 
 
-''' 
+``` 
 
 $ cog run python -m transformers.models.llama.convert_llama_weights_to_hf \ 
 --input_dir unconverted-weights \ 
 --model_size 7B \ 
 --output_dir weights 
 
-''' 
+``` 
 
 You final directory structure should look like this: 
 
-''' 
+``` 
 
 Weights 
 
@@ -177,15 +177,15 @@ Weights
 
 └── tokenizermdki 
 
-''' 
+``` 
 
 ## Step 3: Train the model 
 
-''' 
+``` 
 
 "ValueError: Tokenizer class LLaMATokenizer does not exist " 
 
-''' 
+``` 
 
  
 
@@ -195,13 +195,13 @@ This is arising, because the tokenizer in the config on the hub points to LLaMAT
 
 https://github.com/huggingface/transformers/issues/22222 
 
-''' 
+``` 
 
 "Could not find the transformer layer class to wrap in the model 
 
 " 
 
-''' 
+``` 
 
 Try changing fsdp_transformer_layer_cls_to_wrap to LlamaDecoderLayer 
 
@@ -229,7 +229,7 @@ NVIDIA A100 40GB GPUs are not enough resources to "train model'.
 
 ### Train model on 8GPUs with  80GB RAM on NVIDIA A100 
 
-''' 
+``` 
 
 $ torchrun   --nproc_per_node=8 --master_port=9292    train.py  \ 
 
@@ -271,18 +271,18 @@ $ torchrun   --nproc_per_node=8 --master_port=9292    train.py  \
 
   --tf32 True  
 
-''' 
+``` 
 
 
 ## ChatLLaMA inference test: 
 
-''' 
+``` 
 
 $  cog predict -i prompt="tell me something about รามาเกรียน " 
 
-''' 
+``` 
 
-''' 
+``` 
 
 [ 
 
@@ -290,7 +290,7 @@ $  cog predict -i prompt="tell me something about รามาเกรียน
 
 ] 
 
-''' 
+``` 
 
 
 About 39 minutes for  training, "609/609 [38:53<00:00,  3.83s/it]" 
