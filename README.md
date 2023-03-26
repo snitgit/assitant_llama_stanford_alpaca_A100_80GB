@@ -272,7 +272,7 @@ About 39 minutes for  training, "609/609 [38:53<00:00,  3.83s/it]"
 Without tunning model, Thai's context and questin results are promising.
 ``` 
 
-$  cog predict -i prompt="tell me something about รามาเกรียน " 
+$  cog predict -i prompt="tell me something about รามเกียรติ์ " 
 
 ``` 
 
